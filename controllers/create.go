@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -25,12 +24,14 @@ type Account struct {
 func CreateAccount(c *gin.Context) {
 	err := godotenv.Load(".env")
 	if err != nil {
-		fmt.Println(err)
+		c.String(http.StatusInternalServerError, "internal error")
+		return
 	}
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("mongoURI")))
 	if err != nil {
-		log.Fatal(err)
+		c.String(http.StatusInternalServerError, "internal error")
+		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -38,7 +39,8 @@ func CreateAccount(c *gin.Context) {
 
 	err = client.Connect(ctx)
 	if err != nil {
-		log.Fatal(err)
+		c.String(http.StatusInternalServerError, "internal error")
+		return
 	}
 	defer client.Disconnect(ctx)
 
@@ -51,7 +53,8 @@ func CreateAccount(c *gin.Context) {
 	var newAccount Account
 
 	if err := c.BindJSON(&newAccount); err != nil {
-		fmt.Println(err)
+		c.String(http.StatusInternalServerError, "invalid credentials")
+		return
 	}
 
 	filter := bson.M{"email": newAccount.Email}
@@ -63,7 +66,8 @@ func CreateAccount(c *gin.Context) {
 
 		insertedAccount, err := userAccounts.InsertOne(ctx, newAccount)
 		if err != nil {
-			log.Fatal(err)
+			c.String(http.StatusInternalServerError, "internal error")
+			return
 		}
 		fmt.Println(insertedAccount)
 		c.String(http.StatusCreated, "Account successfully created")
