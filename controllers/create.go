@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/BBrandude/go-auth-client/configs"
 	"github.com/gin-gonic/gin"
@@ -23,9 +22,6 @@ type Account struct {
 var createCollection *mongo.Collection = configs.GetCollection(configs.DB, "userAccounts")
 
 func CreateAccount(c *gin.Context) {
-	//
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	var existingAccount Account
 	var newAccount Account
@@ -48,7 +44,7 @@ func CreateAccount(c *gin.Context) {
 		}
 		newAccount.Password = string(hashedPassword)
 
-		insertedAccount, err := createCollection.InsertOne(ctx, newAccount)
+		insertedAccount, err := createCollection.InsertOne(context.TODO(), newAccount)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "internal error")
 			return
