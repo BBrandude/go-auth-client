@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Account struct {
@@ -19,7 +20,7 @@ type Account struct {
 	LastName  string `json:"lastName"`
 }
 
-var collection *mongo.Collection = configs.GetCollection(configs.DB, "userAccounts")
+var createCollection *mongo.Collection = configs.GetCollection(configs.DB, "userAccounts")
 
 func CreateAccount(c *gin.Context) {
 	//
@@ -36,12 +37,18 @@ func CreateAccount(c *gin.Context) {
 
 	filter := bson.M{"email": newAccount.Email}
 
-	err := collection.FindOne(context.TODO(), filter).Decode(&existingAccount)
+	err := createCollection.FindOne(context.TODO(), filter).Decode(&existingAccount)
 	if err == mongo.ErrNoDocuments {
 
 		fmt.Println("does not exist, creating acc")
 
-		insertedAccount, err := collection.InsertOne(ctx, newAccount)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newAccount.Password), 14)
+		if err != nil {
+			fmt.Println(err)
+		}
+		newAccount.Password = string(hashedPassword)
+
+		insertedAccount, err := createCollection.InsertOne(ctx, newAccount)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "internal error")
 			return
@@ -51,4 +58,5 @@ func CreateAccount(c *gin.Context) {
 	} else {
 		c.String(http.StatusCreated, "Account under "+existingAccount.Email+" already exists")
 	}
+
 }
