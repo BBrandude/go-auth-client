@@ -7,7 +7,8 @@ import (
 
 func main() {
 	r := gin.Default()
-	r.POST("/", controllers.CreateAccount)
+	r.POST("/create", controllers.CreateAccount)
+	r.POST("/login", controllers.Login)
 
 	r.Run()
 }
