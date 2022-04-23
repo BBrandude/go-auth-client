@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+
 	r := gin.Default()
 	r.POST("/create", controllers.CreateAccount)
 	r.POST("/login", controllers.Login)

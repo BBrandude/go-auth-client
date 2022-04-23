@@ -56,3 +56,5 @@ func CreateAccount(c *gin.Context) {
 	}
 
 }
+
+// {"email": "john@gmail.com", "password":"pass123", "firstName": "John", "lastName": "Mark"}
