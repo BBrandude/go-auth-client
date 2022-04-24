@@ -19,11 +19,11 @@ type accountLoginInfo struct {
 	Password string `json:"password"`
 }
 
-type sessionData struct {
+type SessionData struct {
 	Cookie    string    `json:"cookie"`
 	UserName  string    `json:"userName"`
-	CreatedAt time.Time `bson:"createdAt,omitempty"`
-	Timestamp time.Time `bson:"timestamp,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 var collection *mongo.Collection = configs.GetCollection(configs.DB, "userAccounts")
@@ -58,13 +58,13 @@ func Login(c *gin.Context) {
 
 		newCookie := randomCookieString(32)
 		createSession(existingAccount, newCookie)
-		c.SetCookie("cookieName", newCookie, 10, "/", "yourDomain", true, false)
+		c.SetCookie("session", newCookie, 10, "/", "yourDomain", true, false)
 		c.String(http.StatusCreated, "login successful")
 	}
 }
 
 func createSession(accSession Account, sessionCookie string) {
-	newSession := sessionData{Cookie: sessionCookie, UserName: accSession.Email, Timestamp: time.Now(), CreatedAt: time.Now()}
+	newSession := SessionData{Cookie: sessionCookie, UserName: accSession.Email, Timestamp: time.Now(), CreatedAt: time.Now()}
 
 	res, err := userSessions.InsertOne(context.TODO(), newSession)
 	if err != nil {
